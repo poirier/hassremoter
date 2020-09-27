@@ -1,0 +1,19 @@
+{
+  "domain": "remoter",
+  "name": "Act on remote buttons",
+  "config_flow": true,
+  "documentation": "https://www.home-assistant.io/integrations/remoter",
+  "after_dependencies": [
+    "androidtv",
+    "lirc",
+    "roku"
+  ],
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": [],
+  "homekit": {},
+  "dependencies": [],
+  "codeowners": [
+    "@poirier"
+  ]
+}
