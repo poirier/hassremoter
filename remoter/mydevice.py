@@ -1,4 +1,5 @@
 import logging
+from pprint import pformat
 
 from homeassistant.const import SERVICE_TURN_OFF, SERVICE_TURN_ON
 from homeassistant.core import State
@@ -20,11 +21,12 @@ class MyDevice:
 
     @property
     def current_source(self) -> str:
-        return self.state.attributes["source"]
+        return self.state.attributes.get("source")
 
     @property
     def state(self) -> State:
         state = self.hass.states.get(self.entity_id)
+        logger.warning(f"\n===\nstate of {self.entity_id} = {pformat(state.state)}\n===")
         # logger.warning(f"state of {self.entity_id} = {pformat(state.as_dict())}")
         return state
 
