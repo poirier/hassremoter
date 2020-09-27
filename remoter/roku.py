@@ -47,10 +47,14 @@ class Roku(MyDevice):
     domain = media_player.DOMAIN
     entity_id = f"{domain}.55_tcl_roku_tv"
     on_states = ["home", "on"]
+    off_states = ["standby", "off"]
 
     def __init__(self, hass):
         super().__init__(hass)
         self.remote = RokuRemote(hass)
+
+    def is_on(self):
+        return self.state.state not in self.off_states
 
     @property
     def supported_keys(self):
