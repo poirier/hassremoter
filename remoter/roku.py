@@ -9,18 +9,6 @@ logger = logging.getLogger(__name__)
 
 SERVICE_SEND_COMMAND = "send_command"
 
-ROKU_REMOTE_BUTTON_TO_SERVICE = {
-    RemoteButton.KEY_UP: "up",
-    RemoteButton.KEY_DOWN: "down",
-    RemoteButton.KEY_LEFT: "left",
-    RemoteButton.KEY_RIGHT: "right",
-    RemoteButton.KEY_EXIT: "home",
-    RemoteButton.KEY_OK: "select",
-    RemoteButton.KEY_PLAY: "play",
-    RemoteButton.KEY_PAUSE: "play",
-    RemoteButton.KEY_MENU: "back",
-}
-
 """
 For media_player.55_tcl_roku_tv, valid services are dict_keys(
 ['turn_on', 'turn_off', 'toggle', 'volume_up', 'volume_down', 'media_play_pause', 'media_play', 'media_pause', 
@@ -35,12 +23,31 @@ class RokuRemote(MyDevice):
     domain = remote.DOMAIN
     entity_id = f"{domain}.55_tcl_roku_tv"
 
-    @property
-    def supported_keys(self):
-        return ROKU_REMOTE_BUTTON_TO_SERVICE.keys()
+    async def send_remote_button(self, name):
+        return await self._service(service="send_command", command=self.keymap[name])
 
-    async def send_key(self, key):
-        return await self._service(service="send_command", command=ROKU_REMOTE_BUTTON_TO_SERVICE[key],)
+    keymap = {
+        RemoteButton.KEY_UP: "up",
+        RemoteButton.KEY_DOWN: "down",
+        RemoteButton.KEY_LEFT: "left",
+        RemoteButton.KEY_RIGHT: "right",
+        RemoteButton.KEY_EXIT: "home",
+        RemoteButton.KEY_OK: "select",
+        RemoteButton.KEY_PLAY: "play",
+        RemoteButton.KEY_PAUSE: "play",
+        RemoteButton.KEY_MENU: "back",
+    }
+
+
+class RokuSources:
+    denon = "AV\xa0receiver"
+    home = "Home"
+    pandora = "Pandora"
+    pbs = "PBS"
+    plex = "Plex - Stream for Free"
+    prime = "Prime Video"
+    qvc = "QVC & HSN"
+    youtube = "YouTube"
 
 
 class Roku(MyDevice):
@@ -48,6 +55,7 @@ class Roku(MyDevice):
     entity_id = f"{domain}.55_tcl_roku_tv"
     on_states = ["home", "on"]
     off_states = ["standby", "off"]
+    sources = RokuSources()
 
     def __init__(self, hass):
         super().__init__(hass)
@@ -60,15 +68,15 @@ class Roku(MyDevice):
     def supported_keys(self):
         return self.remote.supported_keys
 
-    async def send_key(self, key):
-        return await self.remote.send_key(key)
+    async def send_remote_button(self, name):
+        return await self.remote.send_remote_button(name)
 
     async def set_source(self, source):
         # If it's not on, it needs to be
         logger.warning(f"ROKU SET SOURCE {source}")
-        if source not in self.state.attributes["source_list"]:
-            logger.error(f"ROKU: source {source!r} is not valid. Choices are {self.state.attributes['source_list']!r}")
-            return
+        # if source not in self.state.attributes["source_list"]:
+        #     logger.error(f"ROKU: source {source!r} is not valid. Choices are {self.state.attributes['source_list']!r}")
+        #     return
         if not self.is_on():
             await self.turn_on()
         await self._service(service="select_source", source=source)

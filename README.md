@@ -30,27 +30,33 @@ I set up LIRC on the Linux account running homeassistant, configured
 to send button events like KEY_POWER, KEY_UP, etc to the "home-assistant" LIRC client.
 
 I enable the lirc integration on homeassistant. 
-Now my custom component can register for ``"ir_command_received"`` events
+Now my custom component can register for ``ir_command_received`` events
 and be called whenever a button is pressed on the remote.  Then I can
 do whatever I want with it. 
 
 All the components of my home TV setup can be controlled over the network, and have integrations
 in Home Assistant:
 
-* Denon receiver: plays all audio. Has Chromecast and Firestick plugged into it. Has TV output going to the TV.
+* Denon receiver: plays all audio. Routes video from other devices to the TV.
+  Has Chromecast and Firestick plugged into it.
+  Uses the [denonavr](https://www.home-assistant.io/integrations/denonavr/) integration.
 
 * TCL Roku television: shows all video. If I'm watching something in a Roku channel, the optical audio output
   goes to the Denon and it has its current input set to its optical audio input, so the sound comes out the
   big speakers. Otherwise, the roku is set to accept input from one of its HDMI in ports, and the Denon
   sets its input to one of the devices plugged into its own HDMI ports, plays the audio over its speakers,
-  and sends the video to the TV.
+  and sends the video to the TV. Uses the [Roku](https://www.home-assistant.io/integrations/roku)
+  integration.
 
 * Amazon Firestick: plugged into the Denon receiver. I mainly got this because the Jellyfin client is much
-  more mature than the one for Roku.
+  more mature than the one for Roku.  Uses the [androidtv](https://www.home-assistant.io/integrations/androidtv)
+  integration.
 
 * Chromecast (4K UHD): plugged into the Denon receiver. I like this least for watching movies and TV because
   you pretty much have to control it from your phone or computer, not a convenient remote. But it's the only
   way to get HBOMax onto your television until HBO makes a deal with Roku and/or Amazon.
+  Uses the [cast](https://www.home-assistant.io/integrations/cast) integration, but I'm not doing much
+  with that.
   
 (NOTE: the Chromecast is obviously on the network. I wonder if I could figure out a way to at least
 pause and start it from home assistant.)
@@ -63,3 +69,10 @@ The volume keys on the remote always forward to the Denon, because it handles al
 The navigation keys are forwarded to whatever device is the current source for the Denon.
 E.g. if the Denon source is the Firestick, arrows etc. go to the firestick.
 
+# Why not ...?
+
+Why don't I use scenes? I don't like editing them
+in the HA UI. Plus they're not transparent enough - I don't trust that they're going
+to do exactly what I want. And the way opening a scene for editing changes its configuration
+to match what the devices are currently doing, without my ever asking it to do that,
+is obnoxious.
