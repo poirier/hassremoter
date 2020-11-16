@@ -8,6 +8,7 @@ from .const import RemoteButton, DOMAIN
 from .debouncer import Debouncer
 from .denon import Denon
 from .firestick import FireStick, FireStickSources
+# from .moth import Moth
 from .roku import Roku, RokuSources
 
 logger = logging.getLogger(__name__)
@@ -41,6 +42,34 @@ FIRESTICK_SCENES = {
 async def async_setup(hass: HomeAssistant, config: dict):
     logger.warning("remoter: setup")
 
+    futures_pending = []
+    next_task_id = 1
+
+    def remember_future(f):
+        nonlocal next_task_id
+        if f is None:
+            return
+        id = next_task_id
+        next_task_id += 1
+        futures_pending.append({'id': id, 'future': f})
+        logger.warning(f"Task {id} started")
+
+
+    # Check for finished futures
+    def check_tasks():
+        for fp in list(futures_pending):
+            f = fp["future"]
+            id = fp["id"]
+            if f.done():
+                futures_pending.remove(fp)
+                e = f.exception()
+                if e:
+                    logger.error(f"remoter: future {id} had exception: {e}")
+            #     else:
+            #         logger.warning(f"task {id} completed successfully")
+            # else:
+            #     logger.warning(f"task {id} not done yet")
+
     def start(*targets):
         """
         targets should be coroutine objects, possibly other awaitables.
@@ -52,12 +81,13 @@ async def async_setup(hass: HomeAssistant, config: dict):
         """
         for target in targets:
             if target:  # Could be None
-                hass.async_add_job(target)
+                remember_future(hass.async_add_job(target))
 
     debouncer = Debouncer()
     denon = Denon(hass)
     firestick = FireStick(hass)
     roku = Roku(hass)
+    # moth = Moth(hass)
 
     def watch_on_roku(source):
         # Schedules itself
@@ -105,6 +135,8 @@ async def async_setup(hass: HomeAssistant, config: dict):
     def handle_event(event):
         name = event.data.get("button_name")
         logger.warning(f"button={name}")
+        check_tasks()
+
         # Slow things down - except for a few keys we want to repeat
         if name not in RemoteButton.REPEATABLE_KEYS and debouncer.debounce(event):
             return
@@ -119,6 +151,13 @@ async def async_setup(hass: HomeAssistant, config: dict):
             # SHUT IT ALL DOWN
             start(denon.turn_off(), roku.turn_off(), firestick.turn_off())
 
+        # elif name == RemoteButton.KEY_9:
+        #     start(
+        #         denon.set_source(denon.sources.moth),
+        #         roku.set_source(roku.sources.denon),
+        #         firestick.turn_off(),
+        #     )
+
         elif name in ROKU_SCENES:
             watch_on_roku(ROKU_SCENES[name])
         elif name in FIRESTICK_SCENES:
@@ -126,7 +165,10 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
         # DEVICE and MODE SPECIFIC: control whatever's running
         elif name in denon.supported_keys:  # mainly volume controls
+            logger.warning(denon.volume_level)
             start(denon.send_remote_button(name))
+        # elif mode == "moth" and name in moth.supported_keys:
+        #     start(moth.send_remote_button(name))
         elif mode == "roku" and name in roku.supported_keys:  # navigate in Roku
             start(roku.send_remote_button(name))
         elif mode == "firestick" and name in firestick.supported_keys:  # navigate in firestick

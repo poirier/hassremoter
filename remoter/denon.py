@@ -19,6 +19,7 @@ class DenonSources:
     # Names I understand mapped to the name of the source to actually set.
     firestick = "3Bluray/Fire"
     roku = "Opt1 TV Aud"
+    moth = "4 Game/June"
 
 
 class Denon(MyDevice):
@@ -44,6 +45,8 @@ class Denon(MyDevice):
             mode = "firestick"
         elif source == self.sources.roku:
             mode = "roku"
+        elif source == self.sources.moth:
+            mode = "moth"
         logger.warning("MODE = %s", mode)
         return mode
 
@@ -58,10 +61,19 @@ class Denon(MyDevice):
         if name == RemoteButton.KEY_MUTE:
             return await self._service(service="volume_mute", is_volume_muted=True)
         elif name == RemoteButton.KEY_VOLUMEUP:
+            # This raises the volume by 0.005
             return await self._service(service="volume_up")
         elif name == RemoteButton.KEY_VOLUMEDOWN:
+            # This lowers the volume by 0.005
             return await self._service(service="volume_down")
-        return await self._service(self.keymap[name])
+        elif name == RemoteButton.KEY_CHANNELUP:
+            # Let's raise the volume by 0.025
+            return await self._service(service="volume_set", volume=self.volume_level + 0.025)
+        elif name == RemoteButton.KEY_CHANNELDOWN:
+            # Let's lower the volume by 0.025
+            return await self._service(service="volume_set", volume=self.volume_level - 0.025)
+        else:
+            return await self._service(self.keymap[name])
 
 
     keymap = {
@@ -69,5 +81,7 @@ class Denon(MyDevice):
         # but these are the buttons we can handle.
         RemoteButton.KEY_VOLUMEUP: SERVICE_VOLUME_UP,
         RemoteButton.KEY_VOLUMEDOWN: SERVICE_VOLUME_DOWN,
+        RemoteButton.KEY_CHANNELUP: None,
+        RemoteButton.KEY_CHANNELDOWN: None,
         RemoteButton.KEY_MUTE: SERVICE_VOLUME_MUTE,
     }

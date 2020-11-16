@@ -1,4 +1,6 @@
 import logging
+from pprint import pformat
+from typing import Optional
 
 from homeassistant.const import SERVICE_TURN_OFF, SERVICE_TURN_ON
 from homeassistant.core import State
@@ -36,6 +38,14 @@ class MyDevice:
         return self.state.attributes.get("source")
 
     @property
+    def volume_level(self):
+        state = self.state
+        attrs = state.attributes
+        if "volume_level" in attrs:
+            # logger.warning(f'volume level of {self.entity_id} = {state["attributes"]["volume_level"]}')
+            return attrs["volume_level"]
+
+    @property
     def state(self) -> State:
         state = self.hass.states.get(self.entity_id)
         # logger.warning(f"\n===\nstate of {self.entity_id} = {pformat(state.state)}\n===")
@@ -45,12 +55,13 @@ class MyDevice:
     def is_on(self):
         return self.state.state in self.on_states
 
-    async def _service(self, service, domain=None, **moredata):
+    async def _service(self, service:str, domain:Optional[str]=None, **moredata):
         """
         Submit a service request to this devices' entity.
         """
         if domain is None:
             domain = self.domain
+        logger.warning(f"_service({service}, {domain}, {self.entity_id}, {moredata}")
         return await self.hass.services.async_call(  # coroutine
             domain=domain,
             service=service,

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 from homeassistant.components import remote, media_player
@@ -36,6 +37,8 @@ class RokuRemote(MyDevice):
         RemoteButton.KEY_PLAY: "play",
         RemoteButton.KEY_PAUSE: "play",
         RemoteButton.KEY_MENU: "back",
+        RemoteButton.KEY_REWIND: "reverse",
+        RemoteButton.KEY_FORWARD: "forward",
     }
 
 
@@ -79,4 +82,5 @@ class Roku(MyDevice):
         #     return
         if not self.is_on():
             await self.turn_on()
+            await asyncio.sleep(0.3)
         await self._service(service="select_source", source=source)

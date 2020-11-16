@@ -41,10 +41,14 @@ class RemoteButton:
     KEY_NEXT = "KEY_NEXT"
     KEY_RECORD = "KEY_RECORD"
 
-    REPEATABLE_KEYS = ["KEY_VOLUMEUP", "KEY_VOLUMEDOWN", "KEY_REWIND", "KEY_FORWARD"]
+    REPEATABLE_KEYS = []
     UNREPEATABLE_KEYS = [
         f"KEY_{name}"
         for name in [
+            "VOLUMEUP",
+            "VOLUMEDOWN",
+            "REWIND",
+            "FORWARD",
             "POWER",
             "MUTE",
             "CHANNELUP",
