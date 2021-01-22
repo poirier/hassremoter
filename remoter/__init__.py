@@ -8,6 +8,7 @@ from .const import RemoteButton, DOMAIN
 from .debouncer import Debouncer
 from .denon import Denon
 from .firestick import FireStick, FireStickSources
+
 # from .moth import Moth
 from .roku import Roku, RokuSources
 
@@ -22,6 +23,7 @@ ROKU_SCENES = {
     # Scenes which involve setting a source/app on Roku, and not using Firestick at all
     RemoteButton.KEY_RED: RokuSources.home,
     RemoteButton.KEY_BLUE: RokuSources.qvc,  # also available on Firestick
+    RemoteButton.KEY_YELLOW: RokuSources.hbo_max,
     RemoteButton.KEY_1: RokuSources.plex,
     RemoteButton.KEY_2: RokuSources.youtube,
     RemoteButton.KEY_3: RokuSources.pandora,
@@ -32,10 +34,10 @@ ROKU_SCENES = {
 FIRESTICK_SCENES = {
     # Scenes which involve a source/app on firestick
     RemoteButton.KEY_GREEN: FireStickSources.home,
-    RemoteButton.KEY_YELLOW: FireStickSources.hbomax,
+    # RemoteButton.KEY_YELLOW: FireStickSources.hbomax,
     RemoteButton.KEY_6: FireStickSources.jellyfin,
-    RemoteButton.KEY_7: FireStickSources.prime,  # also available on Roku
-    RemoteButton.KEY_8: FireStickSources.qvc,  # also available on Roku
+    # RemoteButton.KEY_7: FireStickSources.prime,  # also available on Roku
+    # RemoteButton.KEY_8: FireStickSources.qvc,  # also available on Roku
 }
 
 
@@ -51,9 +53,8 @@ async def async_setup(hass: HomeAssistant, config: dict):
             return
         id = next_task_id
         next_task_id += 1
-        futures_pending.append({'id': id, 'future': f})
+        futures_pending.append({"id": id, "future": f})
         logger.warning(f"Task {id} started")
-
 
     # Check for finished futures
     def check_tasks():
@@ -147,9 +148,19 @@ async def async_setup(hass: HomeAssistant, config: dict):
         # send them to the Roku.
         mode = denon.get_mode()
 
+        if mode == "roku":
+            logger.warning(f"roku source = {roku.current_source}")
+
         if name == RemoteButton.KEY_POWER:
             # SHUT IT ALL DOWN
             start(denon.turn_off(), roku.turn_off(), firestick.turn_off())
+
+        elif name == RemoteButton.KEY_9:
+            # Junebug?
+            start(
+                denon.set_source(denon.sources.junebug),
+                roku.set_source(roku.sources.denon),
+            )
 
         # elif name == RemoteButton.KEY_9:
         #     start(
@@ -171,7 +182,9 @@ async def async_setup(hass: HomeAssistant, config: dict):
         #     start(moth.send_remote_button(name))
         elif mode == "roku" and name in roku.supported_keys:  # navigate in Roku
             start(roku.send_remote_button(name))
-        elif mode == "firestick" and name in firestick.supported_keys:  # navigate in firestick
+        elif (
+            mode == "firestick" and name in firestick.supported_keys
+        ):  # navigate in firestick
             start(firestick.send_remote_button(name))
 
         else:

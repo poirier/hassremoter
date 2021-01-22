@@ -6,6 +6,7 @@ from homeassistant.const import (
     SERVICE_VOLUME_UP,
     SERVICE_VOLUME_DOWN,
     SERVICE_VOLUME_MUTE,
+    SERVICE_VOLUME_SET,
 )
 
 from .const import RemoteButton
@@ -19,7 +20,7 @@ class DenonSources:
     # Names I understand mapped to the name of the source to actually set.
     firestick = "3Bluray/Fire"
     roku = "Opt1 TV Aud"
-    moth = "4 Game/June"
+    junebug = "4 Game/June"
 
 
 class Denon(MyDevice):
@@ -27,6 +28,7 @@ class Denon(MyDevice):
     Control my Denon receiver, which handles audio as well as routing
     video from other devices to the Roku/TV.
     """
+
     domain = "media_player"
     entity_id = f"{domain}.denon"
     on_states = ["on"]
@@ -45,8 +47,8 @@ class Denon(MyDevice):
             mode = "firestick"
         elif source == self.sources.roku:
             mode = "roku"
-        elif source == self.sources.moth:
-            mode = "moth"
+        elif source == self.sources.junebug:
+            mode = "junebug"
         logger.warning("MODE = %s", mode)
         return mode
 
@@ -59,22 +61,27 @@ class Denon(MyDevice):
 
     async def send_remote_button(self, name):
         if name == RemoteButton.KEY_MUTE:
-            return await self._service(service="volume_mute", is_volume_muted=True)
+            return await self._service(
+                service=SERVICE_VOLUME_MUTE, is_volume_muted=True
+            )
         elif name == RemoteButton.KEY_VOLUMEUP:
             # This raises the volume by 0.005
-            return await self._service(service="volume_up")
+            return await self._service(service=SERVICE_VOLUME_UP)
         elif name == RemoteButton.KEY_VOLUMEDOWN:
             # This lowers the volume by 0.005
-            return await self._service(service="volume_down")
+            return await self._service(service=SERVICE_VOLUME_DOWN)
         elif name == RemoteButton.KEY_CHANNELUP:
-            # Let's raise the volume by 0.025
-            return await self._service(service="volume_set", volume=self.volume_level + 0.025)
+            # Let's raise the volume by 0.1
+            return await self._service(
+                service=SERVICE_VOLUME_SET, volume_level=self.volume_level + 0.1
+            )
         elif name == RemoteButton.KEY_CHANNELDOWN:
-            # Let's lower the volume by 0.025
-            return await self._service(service="volume_set", volume=self.volume_level - 0.025)
+            # Let's lower the volume by 0.1
+            return await self._service(
+                service=SERVICE_VOLUME_SET, volume_level=self.volume_level - 0.1
+            )
         else:
             return await self._service(self.keymap[name])
-
 
     keymap = {
         # Really we call specific services rather than sending button presses,

@@ -20,6 +20,7 @@ For remote.55_tcl_roku_tv, valid services are dict_keys(
 ['turn_off', 'turn_on', 'toggle', 'send_command', 'learn_command'])
 """
 
+
 class RokuRemote(MyDevice):
     domain = remote.DOMAIN
     entity_id = f"{domain}.55_tcl_roku_tv"
@@ -51,6 +52,7 @@ class RokuSources:
     prime = "Prime Video"
     qvc = "QVC & HSN"
     youtube = "YouTube"
+    hbo_max = "HBO Max"
 
 
 class Roku(MyDevice):
