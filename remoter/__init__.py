@@ -153,7 +153,11 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
         if name == RemoteButton.KEY_POWER:
             # SHUT IT ALL DOWN
-            start(denon.turn_off(), roku.turn_off(), firestick.turn_off())
+            start(
+                denon.turn_off(),
+                roku.turn_off(),
+                firestick.turn_off(),
+            )
 
         elif name == RemoteButton.KEY_9:
             # Junebug?
